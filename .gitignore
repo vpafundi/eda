@@ -1,0 +1,24 @@
+# Data e risultati run (mai committare dati AXA)
+data/
+*.parquet
+*.npz
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Notebook
+.ipynb_checkpoints/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
