@@ -175,9 +175,6 @@ def run_pipeline(cfg: EdaConfig, *, skip_bge: bool = True, skip_probe: bool = Fa
     curated_export = curated.drop(columns=drop_cols)
     store.save_df("curation/df_segments_curated_v1.parquet", curated_export)
     store.save_json("curation/curation_manifest.json", cur_stats)
-    excluded = curated_export[curated_export["exclude_from_train"] == 1]
-    if len(excluded):
-        store.save_df("curation/exclude_from_train.parquet", excluded)
 
     logger.info("done: %s artifacts under %s", len(store.artifacts), store.root)
     return store

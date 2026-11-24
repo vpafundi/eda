@@ -40,7 +40,7 @@ def test_run_pipeline_smoke(tmp_path) -> None:
         assert expected in arts, f"missing artifact {expected}"
 
     curated = loaded["curation/df_segments_curated_v1.parquet"]
-    assert "exclude_from_train" in curated.columns
+    assert "exclude_from_train" not in curated.columns
     assert len(curated) > 0
     assert isinstance(loaded["decisions.json"]["tfidf_probe_macro_f1"], dict)
 

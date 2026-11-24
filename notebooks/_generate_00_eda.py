@@ -394,7 +394,7 @@ Regole v1 (vedi `eda.curation`):
 - **A2** testo vuoto → drop
 - **A3** duplicato esatto con etichette in conflitto → drop del gruppo
 - **A4** duplicato esatto, stessa etichetta → tieni 1 record per hash
-- **A5** cleanlab (probe contraddice l'etichetta) → flag `exclude_from_train` (le righe restano per il test silver)
+- **A5** cleanlab (probe contraddice l'etichetta) → drop dal curated (`o5_suspected_mislabels` per revisione)
 
 Output: `curation/df_segments_curated_v1.parquet` nel run store → input della pipeline di split/training.
 """
@@ -417,10 +417,10 @@ display(pd.Series(cur_stats["by_sub"]).rename("segments").sort_values(ascending=
 
 store.save_df("curation/df_segments_curated_v1.parquet", curated_export)
 store.save_json("curation/curation_manifest.json", cur_stats)
-excluded = curated_export[curated_export["exclude_from_train"] == 1]
-if len(excluded):
-    store.save_df("curation/exclude_from_train.parquet", excluded)
-print(f"Curated: {len(curated_export)} righe, exclude_from_train={len(excluded)}")
+print(
+    f"Curated: {len(curated_export)} righe "
+    f"(A5 dropped={cur_stats.get('n_dropped_a5_cleanlab', 0)})"
+)
 """
     ),
     md(
@@ -436,7 +436,7 @@ Qui solo una **preview** della policy: scala tutte le sub con lo stesso fattore
 
 MIN_CLASS_TARGET = 1250
 
-train_pool = curated_export[curated_export["exclude_from_train"] == 0]
+train_pool = curated_export
 preview, sampling_summary = proportional_train_subset(
     train_pool, min_class_target=MIN_CLASS_TARGET, seed=cfg.seed
 )

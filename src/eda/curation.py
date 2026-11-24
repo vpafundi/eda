@@ -5,7 +5,7 @@ Rules v1 — applied to the whole corpus BEFORE any split:
   A2 empty normalized text     -> drop
   A3 exact dup, conflicting labels (macro::sub) -> drop the whole group
   A4 exact dup, same label     -> keep one record per text hash
-  A5 cleanlab suspected mislabels -> flag exclude_from_train (rows stay for silver eval)
+  A5 cleanlab suspected mislabels -> drop (lista in o5_suspected_mislabels per revisione)
 
 `proportional_train_subset` belongs AFTER the split, on the train rows only:
 it rescales every sub with the same factor so class priors stay unchanged
@@ -29,7 +29,7 @@ def apply_curation_v1(
     macro_focus: str | None = None,
     seed: int = 42,
 ) -> tuple[pd.DataFrame, dict]:
-    """Returns (curated_df with exclude_from_train column, stats per rule)."""
+    """Returns (curated_df train-ready, stats per rule)."""
     stats: dict = {"n_in": int(len(df)), "seed": seed}
     out = df.copy()
 
@@ -70,16 +70,16 @@ def apply_curation_v1(
     out = out.drop_duplicates(subset=["_text_hash"], keep="first")
     stats["n_dropped_a4_exact_dup_same_label"] = int(before_a4 - len(out))
 
-    # A5 cleanlab: flag (non drop) quando il probe OOF contraddice l'etichetta silver
-    out["exclude_from_train"] = 0
-    stats["n_flagged_a5_exclude_from_train"] = 0
+    # A5 cleanlab: drop quando il probe OOF contraddice l'etichetta silver
+    stats["n_dropped_a5_cleanlab"] = 0
     if cleanlab_issues is not None and len(cleanlab_issues):
         iss = cleanlab_issues.copy()
         if "oof_pred" in iss.columns:
             iss = iss[iss["sub_category"].astype(str) != iss["oof_pred"].astype(str)]
         bad_keys = set(iss["record_key"].astype(str))
-        out["exclude_from_train"] = out["record_key"].astype(str).isin(bad_keys).astype(int)
-        stats["n_flagged_a5_exclude_from_train"] = int(out["exclude_from_train"].sum())
+        a5_mask = out["record_key"].astype(str).isin(bad_keys)
+        stats["n_dropped_a5_cleanlab"] = int(a5_mask.sum())
+        out = out.loc[~a5_mask].copy()
 
     curated = out[[c for c in out.columns if not c.startswith("_")]].copy()
     stats["n_out_curated"] = int(len(curated))

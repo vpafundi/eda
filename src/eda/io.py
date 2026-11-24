@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 import pandas as pd
@@ -44,8 +47,17 @@ def load_segments(cfg: EdaConfig) -> pd.DataFrame:
     missing = set(REQUIRED_COLUMNS) - set(df.columns)
     if missing:
         raise ValueError(f"colonne mancanti nel parquet: {sorted(missing)}")
-    if not df["record_key"].is_unique:
-        raise ValueError("record_key non univoco")
+    duplicate_rows = int(df["record_key"].duplicated().sum())
+    if duplicate_rows:
+        # Stesso segmento re-ingestito con OCR/surrogati diversi (etichette in genere uguali).
+        logger.warning(
+            "record_key duplicati: %s righe; tiene l'ultima per key (vedi manifest ingestione)",
+            duplicate_rows,
+        )
+        df = df.sort_values(["record_key", "created_at"]).drop_duplicates(
+            subset="record_key", keep="last"
+        )
+        df = df.reset_index(drop=True)
 
     df["created_at"] = pd.to_datetime(df["created_at"], utc=True)
     df["created_date"] = df["created_at"].dt.normalize()

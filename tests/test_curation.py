@@ -39,7 +39,7 @@ def test_curation_a4_same_label_dup_keeps_one(segments_df: pd.DataFrame) -> None
     assert "zz_dup_same" not in set(curated["record_key"])
 
 
-def test_curation_a5_flags_only_disagreeing_issues(segments_df: pd.DataFrame) -> None:
+def test_curation_a5_drops_disagreeing_issues(segments_df: pd.DataFrame) -> None:
     issues = pd.DataFrame(
         {
             "record_key": [segments_df.iloc[0]["record_key"], segments_df.iloc[1]["record_key"]],
@@ -48,11 +48,10 @@ def test_curation_a5_flags_only_disagreeing_issues(segments_df: pd.DataFrame) ->
         }
     )
     curated, stats = apply_curation_v1(segments_df, cleanlab_issues=issues)
-    flagged = set(curated.loc[curated["exclude_from_train"] == 1, "record_key"])
-    assert flagged == {segments_df.iloc[0]["record_key"]}
-    assert stats["n_flagged_a5_exclude_from_train"] == 1
-    # le righe flaggate restano nel curated (servono al test silver)
-    assert segments_df.iloc[0]["record_key"] in set(curated["record_key"])
+    assert stats["n_dropped_a5_cleanlab"] == 1
+    assert segments_df.iloc[0]["record_key"] not in set(curated["record_key"])
+    assert segments_df.iloc[1]["record_key"] in set(curated["record_key"])
+    assert "exclude_from_train" not in curated.columns
 
 
 def test_proportional_subset_preserves_priors() -> None:

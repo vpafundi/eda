@@ -57,7 +57,7 @@ Ogni esecuzione scrive `data/runs/<run_id>/` con:
   `o5_suspected_mislabels.parquet`, `o6_leakage_duplicates.json`, …);
 - `decisions.json` — decisioni finali;
 - `curation/` — `df_segments_curated_v1.parquet`, `curation_manifest.json`,
-  `exclude_from_train.parquet`.
+  (righe A5 cleanlab escluse dal curated; dettaglio in `o5_suspected_mislabels.parquet`).
 
 Il `run_id` è l'aggancio per associare l'EDA a un esperimento di training
 (es. citarlo nel manifest dell'esperimento).

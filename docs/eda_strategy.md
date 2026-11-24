@@ -98,7 +98,7 @@ O1 → O2 → O3 → O6 → O4 → O5 → O7 → **Decisioni** → **Curation (A
 - **A2** testo vuoto (normalizzato) → drop
 - **A3** duplicato esatto con etichette in conflitto → drop del gruppo
 - **A4** duplicato esatto, stessa etichetta → tieni un record per hash
-- **A5** cleanlab (probe OOF contraddice l'etichetta silver) → flag `exclude_from_train` (le righe restano nel curated per il test silver)
+- **A5** cleanlab (probe OOF contraddice l'etichetta silver) → **drop** dal curated (elenco in `o5_suspected_mislabels.parquet` per gold/revisione)
 
 Output: `curation/df_segments_curated_v1.parquet` + `curation_manifest.json` nel run store → input della pipeline di split/training.
 
