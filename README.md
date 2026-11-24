@@ -88,3 +88,4 @@ tests/
 make test   # pytest su dati sintetici
 make lint   # ruff
 ```
+# eda
